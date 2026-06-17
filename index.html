@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBTI 性格测试</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f7;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}
+#app{max-width:560px;width:100%}
+.progress-bar{height:3px;background:#e0e0e0;border-radius:2px;margin-bottom:1.5rem;overflow:hidden}
+.progress-fill{height:100%;background:#534AB7;border-radius:2px;transition:width .4s ease}
+.step-label{font-size:12px;color:#888;margin-bottom:.5rem}
+.card{background:#fff;border-radius:12px;padding:1.75rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.question-text{font-size:15px;font-weight:500;color:#111;line-height:1.6;margin-bottom:1.25rem}
+.options{display:flex;flex-direction:column;gap:8px}
+.option-btn{background:#f7f7f8;border:1px solid #e0e0e0;border-radius:8px;padding:.75rem 1rem;font-size:13px;color:#333;text-align:left;cursor:pointer;line-height:1.5;transition:border-color .15s,background .15s;font-family:inherit}
+.option-btn:hover{border-color:#bbb;background:#f0f0f2}
+.option-btn.selected{border-color:#534AB7;background:#EEEDFE;color:#3C3489}
+.nav-row{display:flex;justify-content:flex-end;margin-top:1rem}
+.next-btn{background:#534AB7;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:13px;color:#fff;cursor:pointer;opacity:.35;transition:opacity .15s;font-family:inherit}
+.next-btn.active{opacity:1}
+.next-btn.active:hover{opacity:.85}
+.intro-card{text-align:center}
+.intro-emoji{font-size:48px;margin-bottom:.75rem;display:block}
+.intro-title{font-size:20px;font-weight:600;color:#111;margin-bottom:.5rem}
+.intro-sub{font-size:13px;color:#888;margin-bottom:1.5rem;line-height:1.7}
+.start-btn{background:#534AB7;border:none;border-radius:8px;padding:.75rem 2.5rem;font-size:14px;color:#fff;cursor:pointer;font-family:inherit;transition:opacity .15s}
+.start-btn:hover{opacity:.85}
+.result-card{text-align:center}
+.result-type{font-size:28px;font-weight:700;color:#534AB7;margin-bottom:.25rem}
+.result-name{font-size:16px;font-weight:600;color:#333;margin-bottom:.75rem}
+.result-label{font-size:12px;color:#aaa;margin-bottom:2px}
+.result-desc{font-size:13px;color:#666;line-height:1.75;margin-bottom:1.25rem;text-align:left}
+.traits{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:1.25rem}
+.trait{font-size:12px;padding:3px 12px;border-radius:20px;background:#EEEDFE;color:#534AB7}
+.dim-bars{margin:1rem 0;text-align:left}
+.dim-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px}
+.dim-label{width:70px;color:#888;flex-shrink:0}
+.dim-track{flex:1;height:6px;background:#eee;border-radius:3px;overflow:hidden}
+.dim-fill{height:100%;border-radius:3px;background:#534AB7;transition:width .6s ease}
+.dim-pct{width:36px;text-align:right;color:#aaa;font-size:12px;flex-shrink:0}
+.restart-btn{background:transparent;border:1px solid #ccc;border-radius:8px;padding:.6rem 1.5rem;font-size:13px;cursor:pointer;color:#555;font-family:inherit;transition:background .15s}
+.restart-btn:hover{background:#f5f5f5}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const questions=[
+{q:"朋友聚会结束后，你通常感觉……",a:[{t:"充满活力，还想继续",v:"E"},{t:"有点累，需要独处恢复",v:"I"}]},
+{q:"处理问题时，你更依赖……",a:[{t:"过去的经验和实际细节",v:"S"},{t:"直觉和整体可能性",v:"N"}]},
+{q:"做决策时，你更看重……",a:[{t:"客观逻辑和公平原则",v:"T"},{t:"对他人的影响和个人价值观",v:"F"}]},
+{q:"对于计划和安排，你更喜欢……",a:[{t:"提前规划好，按步骤走",v:"J"},{t:"保持弹性，随机应变",v:"P"}]},
+{q:"在新环境里，你通常……",a:[{t:"主动找人聊天，快速融入",v:"E"},{t:"先观察，等熟了再开口",v:"I"}]},
+{q:"面对一个新想法，你首先关注……",a:[{t:"这个想法能不能落地实现",v:"S"},{t:"这个想法能延伸出什么可能",v:"N"}]},
+{q:"朋友来倾诉烦恼，你更想……",a:[{t:"帮他分析原因找到解决方法",v:"T"},{t:"先好好陪伴，让他感到被理解",v:"F"}]},
+{q:"假期怎么过，你倾向于……",a:[{t:"提前订好行程，每天都有安排",v:"J"},{t:"到时候再说，哪里有趣去哪里",v:"P"}]},
+{q:"哪个场景让你更舒服？",a:[{t:"和一大群人热闹地交流",v:"E"},{t:"和一两个朋友深入聊天",v:"I"}]},
+{q:"描述你自己更贴切的是……",a:[{t:"实际、脚踏实地、重细节",v:"S"},{t:"有想象力、喜欢探索新概念",v:"N"}]},
+{q:"批评别人时，你更倾向于……",a:[{t:"直接指出问题，不绕弯子",v:"T"},{t:"先顾及对方感受，再委婉表达",v:"F"}]},
+{q:"对于截止日期，你通常……",a:[{t:"提前完成，不喜欢拖到最后",v:"J"},{t:"在最后关头爆发，压力才有动力",v:"P"}]}
+];
+const results={
+INTJ:{name:"战略家",emoji:"♟",desc:"思维缜密、目标明确的战略家。你有超强的长期规划能力，独立思考，不随波逐流。你的内心世界极其丰富，但很少轻易示人。",traits:["独立自主","远见卓识","执行力强","完美主义"]},
+INTP:{name:"逻辑学家",emoji:"⚙",desc:"痴迷于理论和逻辑的思考者。你喜欢拆解复杂问题、寻找规律，对知识有无尽的渴望。思路灵活但有时会想太多。",traits:["逻辑严密","创意无限","求知若渴","灵活变通"]},
+ENTJ:{name:"指挥官",emoji:"⚡",desc:"天生的领袖，目标驱动、决策果断。你善于整合资源、推动改变，有强烈的掌控欲和执行力。",traits:["领导力强","果断高效","战略思维","自信魄力"]},
+ENTP:{name:"辩论家",emoji:"💡",desc:"思维敏锐、口才犀利的创意者。你喜欢辩论、挑战惯例，能快速看到事物的多面性。",traits:["思维活跃","善于辩论","创意十足","适应力强"]},
+INFJ:{name:"提倡者",emoji:"✨",desc:"深思熟虑、充满理想的洞察者。你对人性有极深的理解，渴望让世界变得更好。外表平静，内心波澜。",traits:["共情能力强","有远见","坚守原则","洞察人心"]},
+INFP:{name:"调停者",emoji:"🌿",desc:"理想主义者，内心充满诗意与温柔。你重视真实性，对自己的价值观极其忠诚，富有创造力和同理心。",traits:["富有同理心","创意丰富","理想主义","忠于自我"]},
+ENFJ:{name:"主人公",emoji:"🌟",desc:"充满魅力的天然领袖。你对他人有强烈的关注和影响力，善于激励、连接和帮助他人成长。",traits:["影响力强","善于激励","共情细腻","有责任感"]},
+ENFP:{name:"竞选者",emoji:"🎉",desc:"热情洋溢、充满创意的自由灵魂。你对新鲜事物充满好奇，擅长激发他人的热情，到处是朋友。",traits:["热情开朗","创意丰富","好奇心强","感染力强"]},
+ISTJ:{name:"物流师",emoji:"📋",desc:"可靠、负责、脚踏实地的守护者。你重视传统、规则和秩序，做事系统严谨，是身边人的定心丸。",traits:["可靠负责","细致严谨","重视传统","忠诚稳定"]},
+ISFJ:{name:"守护者",emoji:"🛡",desc:"温暖体贴、默默奉献的支持者。你重视和谐、在意他人的感受，极具耐心，是朋友和家人的强大后盾。",traits:["温柔体贴","无私奉献","记忆力好","踏实可靠"]},
+ESTJ:{name:"总经理",emoji:"📊",desc:"实干家中的实干家，注重效率、秩序和结果。你有强烈的责任心，擅长管理和组织，是天然的执行者。",traits:["执行力强","注重效率","直接坦率","责任心强"]},
+ESFJ:{name:"执政官",emoji:"🤝",desc:"热心肠的社交型人物。你天生关注他人的需求，善于营造温暖氛围，是维系团体凝聚力的核心人物。",traits:["热情友善","乐于助人","重视关系","注重和谐"]},
+ISTP:{name:"鉴赏家",emoji:"🔧",desc:"沉默但高效的问题解决者。你善于分析、动手能力强，能冷静应对突发状况，逻辑清晰不带情绪。",traits:["冷静理性","动手能力强","灵活应变","喜欢自由"]},
+ISFP:{name:"探险家",emoji:"🎨",desc:"温和、敏感、充满艺术气息的内在探索者。你活在当下，欣赏美的事物，不喜欢冲突，忠于自己的感受。",traits:["艺术敏感","活在当下","温和善良","忠于自我"]},
+ESTP:{name:"企业家",emoji:"🔥",desc:"行动派，充满活力的现实主义者。你头脑灵活、反应快，善于把握机会，喜欢在行动中解决问题。",traits:["行动力强","随机应变","社交活跃","务实直接"]},
+ESFP:{name:"表演者",emoji:"🎭",desc:"活力四射、自发性强的社交达人。你享受当下的快乐，让周围的人都跟着你high起来，是天生的活跃分子。",traits:["活力充沛","享受当下","社交达人","乐观开朗"]}
+};
+let cur=0,scores={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0},answers=new Array(questions.length).fill(null);
+const app=document.getElementById('app');
+function renderIntro(){
+app.innerHTML=`<div class="card intro-card"><span class="intro-emoji">🧠</span><div class="intro-title">MBTI 性格测试</div><div class="intro-sub">共 ${questions.length} 道题 · 约 2 分钟<br>选择最符合你直觉的答案</div><button class="start-btn" onclick="startQuiz()">开始测试</button></div>`;
+}
+function renderQuestion(){
+const q=questions[cur],progress=((cur+1)/questions.length*100);
+app.innerHTML=`
+<div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+<div class="step-label">第 ${cur+1} 题 / 共 ${questions.length} 题</div>
+<div class="card">
+<div class="question-text">${q.q}</div>
+<div class="options">
+${q.a.map((a,i)=>`<button class="option-btn${answers[cur]===i?' selected':''}" onclick="choose(${i},this)">${a.t}</button>`).join('')}
+</div>
+<div class="nav-row"><button class="next-btn${answers[cur]!==null?' active':''}" id="nb" onclick="next()">${cur<questions.length-1?'下一题':'查看结果'}</button></div>
+</div>`;
+}
+function choose(i,_btn){
+answers[cur]=i;
+document.querySelectorAll('.option-btn').forEach((b,idx)=>b.classList.toggle('selected',idx===i));
+document.getElementById('nb').classList.add('active');
+}
+function next(){
+if(answers[cur]===null)return;
+scores[questions[cur].a[answers[cur]].v]++;
+cur++;
+if(cur>=questions.length)renderResult();else renderQuestion();
+}
+function calcType(){
+return(scores.E>=scores.I?'E':'I')+(scores.S>=scores.N?'S':'N')+(scores.T>=scores.F?'T':'F')+(scores.J>=scores.P?'J':'P');
+}
+function renderResult(){
+const type=calcType(),r=results[type];
+const dims=[
+{l1:'E',l2:'I',label:'外向 / 内向'},
+{l1:'S',l2:'N',label:'实感 / 直觉'},
+{l1:'T',l2:'F',label:'思考 / 情感'},
+{l1:'J',l2:'P',label:'判断 / 感知'}
+];
+app.innerHTML=`
+<div class="card result-card">
+<div class="result-emoji" style="font-size:48px;margin-bottom:.5rem">${r.emoji}</div>
+<div class="result-label">你的性格类型</div>
+<div class="result-type">${type}</div>
+<div class="result-name">${r.name}</div>
+<div class="result-desc">${r.desc}</div>
+<div class="traits">${r.traits.map(t=>`<span class="trait">${t}</span>`).join('')}</div>
+<div class="dim-bars">${dims.map(d=>{
+const a=scores[d.l1],b=scores[d.l2],total=a+b,p=Math.round(a/total*100);
+return`<div class="dim-row"><span class="dim-label">${d.label}</span><div class="dim-track"><div class="dim-fill" style="width:${p}%"></div></div><span class="dim-pct">${p}%</span></div>`;
+}).join('')}</div>
+<button class="restart-btn" onclick="restart()">重新测试</button>
+</div>`;
+}
+function startQuiz(){cur=0;scores={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};answers=new Array(questions.length).fill(null);renderQuestion();}
+function restart(){startQuiz();}
+renderIntro();
+</script>
+</body>
+</html>
