@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>恋爱脑指数测试</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(135deg,#fce4ec 0%,#f8bbd0 50%,#f48fb1 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}
+#app{max-width:520px;width:100%}
+.card{background:#fff;border-radius:16px;padding:1.75rem;box-shadow:0 8px 32px rgba(244,143,177,.25)}
+/* Intro */
+.intro{text-align:center}
+.intro-icon{font-size:56px;margin-bottom:.75rem;display:block}
+.intro-title{font-size:22px;font-weight:700;color:#c2185b;margin-bottom:.5rem}
+.intro-sub{font-size:13px;color:#999;margin-bottom:.5rem;line-height:1.7}
+.intro-desc{font-size:13px;color:#666;line-height:1.7;margin-bottom:1.5rem;background:#fce4ec;border-radius:10px;padding:.75rem 1rem}
+.start-btn{background:linear-gradient(135deg,#f48fb1,#e91e63);border:none;border-radius:10px;padding:.8rem 2.5rem;font-size:15px;color:#fff;cursor:pointer;font-weight:600;font-family:inherit;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 15px rgba(233,30,99,.3)}
+.start-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(233,30,99,.4)}
+/* Progress */
+.progress-wrap{margin-bottom:1.25rem}
+.progress-bar{height:4px;background:#fce4ec;border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#f48fb1,#e91e63);border-radius:2px;transition:width .4s ease}
+.step-label{font-size:11px;color:#bbb;margin-bottom:.35rem}
+/* Question */
+.q-text{font-size:15px;font-weight:600;color:#333;line-height:1.7;margin-bottom:1.25rem}
+.options{display:flex;flex-direction:column;gap:9px}
+.opt-btn{background:#fafafa;border:1.5px solid #f0f0f0;border-radius:10px;padding:.7rem 1rem;font-size:13px;color:#444;text-align:left;cursor:pointer;line-height:1.6;transition:all .15s;font-family:inherit}
+.opt-btn:hover{border-color:#f48fb1;background:#fce4ec}
+.opt-btn.selected{border-color:#e91e63;background:linear-gradient(135deg,#fce4ec,#f8bbd0);color:#880e4f;font-weight:500}
+.next-btn{background:linear-gradient(135deg,#f48fb1,#e91e63);border:none;border-radius:10px;padding:.6rem 1.5rem;font-size:13px;color:#fff;cursor:pointer;opacity:.3;transition:opacity .15s,transform .15s;font-family:inherit;font-weight:600;margin-top:1rem;float:right}
+.next-btn.active{opacity:1}
+.next-btn.active:hover{transform:translateY(-1px)}
+/* Result */
+.result{text-align:center}
+.result-emoji{font-size:64px;margin-bottom:.5rem;display:block}
+.result-label{font-size:12px;color:#bbb;margin-bottom:.25rem}
+.result-score{font-size:48px;font-weight:800;background:linear-gradient(135deg,#f48fb1,#e91e63);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.25rem}
+.result-level{font-size:18px;font-weight:700;color:#c2185b;margin-bottom:.75rem}
+.result-desc{font-size:13px;color:#666;line-height:1.8;margin-bottom:1.25rem;text-align:left;background:#fce4ec;border-radius:10px;padding:.75rem 1rem}
+.result-traits{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:1.25rem}
+.trait{font-size:12px;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,#fce4ec,#f8bbd0);color:#c2185b;font-weight:500}
+.bar-wrap{margin:1rem 0;text-align:left}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:12px}
+.bar-label{width:80px;color:#999;flex-shrink:0;font-size:12px}
+.bar-track{flex:1;height:8px;background:#fce4ec;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.restart-btn{background:transparent;border:1.5px solid #f48fb1;border-radius:10px;padding:.6rem 1.5rem;font-size:13px;cursor:pointer;color:#c2185b;font-family:inherit;font-weight:600;transition:background .15s,color .15s;margin-top:.5rem}
+.restart-btn:hover{background:#f48fb1;color:#fff}
+.share-tip{font-size:11px;color:#ccc;margin-top:.75rem}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const questions=[
+{q:"朋友发消息给你，你多久回复？",a:[
+{t:"秒回，手机不离手",s:3},
+{t:"看到就回，但偶尔会忘",s:2},
+{t:"忙完再回，不着急",s:1},
+{t:"经常已读不回，爱回不回",s:0}
+]},
+{q:"对象（或暗恋的人）没回消息，你在干嘛？",a:[
+{t:"不停地看手机，脑补各种剧情",s:3},
+{t:"有点焦虑，会再发一条",s:2},
+{t:"继续做自己的事，不care",s:0},
+{t:"分析一下原因，然后继续生活",s:1}
+]},
+{q:"恋爱后，你的社交圈变成……",a:[
+{t:"基本只剩对象一个人",s:3},
+{t:"朋友还在，但见面少多了",s:2},
+{t:"照样约朋友，不受影响",s:0},
+{t:"有对象，也有自己的生活",s:1}
+]},
+{q:"对象说'我想静静'，你的反应？",a:[
+{t:"疯狂追问怎么了、是不是我做错了",s:3},
+{t:"先问清楚，再给空间",s:2},
+{t:"好，那你去静静吧",s:0},
+{t:"也挺好的，我正好打游戏",s:0}
+]},
+{q:"你有没有因为恋爱而改掉自己的爱好/习惯？",a:[
+{t:"有啊，为了对方什么都愿意改",s:3},
+{t:"改了一点点，但还好",s:2},
+{t:"基本不改，爱我就接受本来的我",s:0},
+{t:"想改我？下一个",s:0}
+]},
+{q:"朋友说你'恋爱脑'，你的反应是？",a:[
+{t:"对啊我就是，怎么了",s:3},
+{t:"好像……有一点点吧",s:2},
+{t:"谁说的？我不认同",s:1},
+{t:"笑死，我根本没空谈恋爱",s:0}
+]},
+{q:"看到对象和其他异性聊天，你？",a:[
+{t:"立刻炸了，要问清楚",s:3},
+{t:"有点在意，但装作不在意",s:2},
+{t:"看看聊什么，正常交流没事",s:1},
+{t:"他爱聊就聊，我管不着",s:0}
+]},
+{q:"周末的计划优先级是？",a:[
+{t:"当然和对象一起过",s:3},
+{t:"看对象有没有空",s:2},
+{t:"自己的安排更重要",s:0},
+{t:"和朋友约好了，对象自己玩",s:0}
+]},
+{q:"你暗恋一个人，会？",a:[
+{t:"每天翻ta的动态，分析每句话",s:3},
+{t:"偶尔看看，心里默默关注",s:2},
+{t:"喜欢就追，不喜欢就算了",s:1},
+{t:"暗恋是什么，直接说",s:0}
+]},
+{q:"你觉得'为了爱情放弃一切'这个说法？",a:[
+{t:"浪漫啊，我也愿意",s:3},
+{t:"有点夸张，但能理解",s:2},
+{t:"清醒一点，爱情不是全部",s:0},
+{t:"笑死，下一个",s:0}
+]}
+];
+const levels=[
+{min:0,label:"钢铁理性派",emoji:"🧊",color:"#4fc3f7",
+desc:"恋爱？那是什么？你的人生优先级是：搞钱、搞事业、搞自己。朋友说你是冷血动物，你说那叫清醒。恋爱脑指数低到让人怀疑你是不是AI。",
+traits:["极度理性","自我优先","不被情绪左右","独立到孤独"]},
+{min:10,label:"偶尔上头型",emoji:"🌤",color:"#81c784",
+desc:"平时清醒得很，但遇到真喜欢的人也会偶尔上头。不过你恢复得很快，睡一觉就清醒了。你懂得在恋爱和自己的生活之间找平衡。",
+traits:["偶尔失控","恢复快","有底线","理性占上风"]},
+{min:30,label:"温和恋爱体质",emoji:"🌸",color:"#f48fb1",
+desc:"你对待恋爱是比较投入的，但不会完全失去自我。你会为对方着想，也会偶尔脑补一些剧情，但总体能保持理智。属于'恋爱但不恋爱脑'的类型。",
+traits:["温柔体贴","有分寸","偶尔多想","懂得适可而止"]},
+{min:55,label:"中度恋爱脑",emoji:"🔥",color:"#ffb74d",
+desc:"你承认自己挺恋爱脑的。对方的一个表情、一句话你都能分析半天。但你还保有最后一丝理智——至少你还会跟朋友吐槽，而不是完全被情绪控制。",
+traits:["容易上头","情绪起伏大","需要被回应","朋友经常劝你"]},
+{min:75,label:"重度恋爱脑",emoji:"💥",color:"#ff7043",
+desc:"你的世界里，恋爱就是头等大事。对方的消息就是你的多巴胺来源，一秒钟不回你就开始写小作文。朋友已经放弃了劝你，因为他们知道你根本听不进去。",
+traits:["已读不回会疯","脑补能力超强","为爱不顾一切","朋友都懂的眼神"]},
+{min:90,label:"没救了",emoji:"🆘",color:"#e53935",
+desc:"你就是传说中的'恋爱脑天花板'。为了爱情可以放弃原则、放弃朋友、放弃自尊。你活在自己编织的爱情剧本里，清醒的人看着都着急。但你说：'这就是爱啊。'",
+traits:["为爱走钢索","完全失去自我","劝不动","爱情至上主义"]}
+];
+let cur=0,score=0,answers=new Array(questions.length).fill(null);
+const app=document.getElementById('app');
+function getLevel(s){
+const pct=Math.round(s/questions.length/3*100);
+return levels.slice().reverse().find(l=>pct>=l.min)||levels[0];
+}
+function renderIntro(){
+app.innerHTML=`<div class="card intro"><span class="intro-icon">💘</span><div class="intro-title">恋爱脑指数测试</div><div class="intro-sub">共 ${questions.length} 题 · 约 2 分钟</div><div class="intro-desc">测测你在恋爱里到底有多"脑"？<br>结果可能会让你怀疑自己……</div><button class="start-btn" onclick="start()">开始测试 💘</button></div>`;
+}
+function renderQuestion(){
+const q=questions[cur],pct=((cur+1)/questions.length*100);
+app.innerHTML=`
+<div class="card">
+<div class="progress-wrap"><div class="step-label">第 ${cur+1} 题 / 共 ${questions.length} 题</div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div></div>
+<div class="q-text">${q.q}</div>
+<div class="options">
+${q.a.map((a,i)=>`<button class="opt-btn${answers[cur]===i?' selected':''}" onclick="choose(${i})">${a.t}</button>`).join('')}
+</div>
+<div style="overflow:hidden;margin-top:.5rem"><button class="next-btn${answers[cur]!==null?' active':''}" id="nb" onclick="next()">${cur<questions.length-1?'下一题 →':'查看结果'}</button></div>
+</div>`;
+}
+function choose(i){
+answers[cur]=i;
+document.querySelectorAll('.opt-btn').forEach((b,idx)=>b.classList.toggle('selected',idx===i));
+document.getElementById('nb').classList.add('active');
+}
+function next(){
+if(answers[cur]===null)return;
+score+=questions[cur].a[answers[cur]].s;
+cur++;
+if(cur>=questions.length)renderResult();else renderQuestion();
+}
+function renderResult(){
+const total=questions.length*3;
+const pct=Math.min(100,Math.round(score/total*100));
+const lvl=getLevel(score);
+app.innerHTML=`
+<div class="card result">
+<div class="result-emoji">${lvl.emoji}</div>
+<div class="result-label">你的恋爱脑指数</div>
+<div class="result-score">${pct}%</div>
+<div class="result-level">${lvl.label}</div>
+<div class="result-desc">${lvl.desc}</div>
+<div class="result-traits">${lvl.traits.map(t=>`<span class="trait">${t}</span>`).join('')}</div>
+<div class="bar-wrap">
+<div class="bar-row"><span class="bar-label">理性指数</span><div class="bar-track"><div class="bar-fill" style="width:${100-pct}%;background:${lvl.color}"></div></div></div>
+<div class="bar-row"><span class="bar-label">恋爱脑指数</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:linear-gradient(90deg,#f48fb1,#e91e63)"></div></div></div>
+</div>
+<button class="restart-btn" onclick="restart()">再测一次</button>
+<div class="share-tip">📸 截图分享给朋友，看看 ta 是多少</div>
+</div>`;
+}
+function start(){cur=0;score=0;answers=new Array(questions.length).fill(null);renderQuestion();}
+function restart(){start();}
+renderIntro();
+</script>
+</body>
+</html>
